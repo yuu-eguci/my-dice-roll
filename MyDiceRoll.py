@@ -11,6 +11,9 @@ import tkinter as tk
 import unicodedata
 
 PLACEHOLDER = '--- 入力欄 ---'
+HOW_TO = (
+    "'+'記号は書かず\n'2d3-1d2+5'であれば\n'2d3 -1d2 5'というように書いてね。\n書いたらエンター。\n"
+)
 MAX_DICE = 1000
 # これより多く振ったら、出目ではなく合計を出す
 MAX_SHOWN_DICE = 10
@@ -89,13 +92,7 @@ class GreenDiceRoll(tk.Frame):
         label_frame = tk.LabelFrame(main_frame, text='せつめい')
         label_frame.pack()
 
-        label = tk.Label(
-            label_frame,
-            justify=tk.LEFT,
-            text="'+'記号は書かず\n'2d3-1d2+5'であれば\n'2d3 -1d2 5'というように書いてね。\n"
-            '書いたらエンター。\n',
-        )
-        label.pack()
+        tk.Label(label_frame, justify=tk.LEFT, text=HOW_TO).pack()
 
         self.entry = tk.Entry(main_frame, width=30)
         self.entry.insert(0, PLACEHOLDER)
