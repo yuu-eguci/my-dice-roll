@@ -40,3 +40,18 @@ def test_running_the_script_with_arguments(args, code, stdout, stderr):
         check=False,
     )
     assert (done.returncode, done.stdout, done.stderr) == (code, stdout, stderr)
+
+
+def test_same_seed_prints_same_result(capsys):
+    outputs = []
+    for _ in range(2):
+        assert MyDiceRoll.main(['--seed', '42', '10d100']) == 0
+        outputs.append(capsys.readouterr().out)
+    assert outputs[0] == outputs[1]
+    assert outputs[0].startswith('(ｺﾛｺﾛﾘﾝ…) 10d100: ')
+
+
+@pytest.mark.parametrize('args', [['--seed', 'x', '1d6'], ['--seed']])
+def test_seed_needs_a_number(capsys, args):
+    assert MyDiceRoll.main(args) == 1
+    assert capsys.readouterr() == ('', '--seed のあとには数を書いてね\n')

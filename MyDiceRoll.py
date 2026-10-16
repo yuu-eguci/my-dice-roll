@@ -191,10 +191,16 @@ class GreenDiceRoll(tk.Frame):
 
 
 def main(args):
-    """引数があれば画面を出さずに振る。なければ画面を出す。"""
+    """引数があれば画面を出さずに振る (--seed N が先頭なら毎回同じ結果)。なければ画面を出す。"""
     if args:
         try:
-            print(result_line(' '.join(args)))
+            rng = random
+            if args[0] == '--seed':
+                if not args[1:2] or not args[1].isdecimal():
+                    raise ValueError('--seed のあとには数を書いてね')
+                # ダイスなので暗号用の乱数でなくていい (同じ結果を出したいので、むしろ普通の乱数)
+                rng, args = random.Random(int(args[1])), args[2:]  # noqa: S311
+            print(result_line(' '.join(args), rng))
         except ValueError as error:
             print(error, file=sys.stderr)
             return 1
