@@ -102,6 +102,9 @@ class GreenDiceRoll(tk.Frame):
         super().__init__(master)
         self.rng = rng
         self.last_result = ''
+        # 振れた入力と、↑ / ↓ でいまどこを見ているか
+        self.history = []
+        self.history_index = 0
         self.master.geometry('350x330')
         self.master.title('Green Dice Roll')
         self.pack()
@@ -120,6 +123,8 @@ class GreenDiceRoll(tk.Frame):
         self.entry.bind('<Return>', self.calculate)
         self.entry.bind('<KP_Enter>', self.calculate)
         self.entry.bind('<FocusIn>', self.clear_placeholder)
+        self.entry.bind('<Up>', lambda event: self.recall(-1))
+        self.entry.bind('<Down>', lambda event: self.recall(1))
 
         tk.Label(main_frame, text='').pack()
 
@@ -147,9 +152,13 @@ class GreenDiceRoll(tk.Frame):
             self.entry.delete(0, tk.END)
 
     def calculate(self, event=None):
+        text = self.entry.get()
         try:
-            self.last_result = result_line(self.entry.get(), self.rng)
+            self.last_result = result_line(text, self.rng)
             shown = self.last_result
+            if self.history[-1:] != [text]:
+                self.history.append(text)
+            self.history_index = len(self.history)
         except ValueError as error:
             self.last_result = ''
             shown = str(error)
@@ -159,6 +168,14 @@ class GreenDiceRoll(tk.Frame):
         self.result_area.configure(state='disabled')
         # そのまま打てば書き直せて、エンターだけならもう一回振れるように
         self.entry.select_range(0, tk.END)
+
+    def recall(self, step):
+        index = self.history_index + step
+        if not 0 <= index <= len(self.history):
+            return
+        self.history_index = index
+        self.entry.delete(0, tk.END)
+        self.entry.insert(0, [*self.history, ''][index])
 
     def copy_result(self):
         if self.last_result:

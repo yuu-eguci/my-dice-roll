@@ -109,6 +109,27 @@ def test_input_is_selected_after_rolling(app):
     assert app.entry.selection_get() == '1d6'
 
 
+def press(app, key):
+    app.entry.focus_force()
+    app.update()
+    app.entry.event_generate(f'<{key}>')
+    app.update()
+    return app.entry.get()
+
+
+def test_up_and_down_recall_rolled_inputs(app):
+    for text in ['1d6', 'abc', '2d6', '2d6']:
+        enter(app, text)
+    assert [press(app, 'Up') for _ in range(3)] == ['2d6', '1d6', '1d6']
+    assert [press(app, 'Down') for _ in range(2)] == ['2d6', '']
+
+
+def test_down_without_history_keeps_input(app):
+    app.entry.delete(0, tk.END)
+    app.entry.insert(0, '3d6')
+    assert press(app, 'Down') == '3d6'
+
+
 def test_error_replaces_old_result(app):
     enter(app, '1d6')
     enter(app, 'abc')
