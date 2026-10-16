@@ -106,10 +106,24 @@ def test_result_line_shows_sum_for_more_than_ten_dice():
     )
 
 
-@pytest.mark.parametrize('text', ['1d6', '1d6 5', '5'])
-def test_result_line_has_no_breakdown_for_one_die(text):
+@pytest.mark.parametrize('text', ['1d6', '1d6 5', '5', '11d6', '-999d6 5'])
+def test_result_line_has_no_breakdown_for_one_die_or_one_summed_item(text):
     assert '\n' not in result_line(text, MaxRng())
 
 
 def test_roll_returns_each_die():
     assert roll('2d3 -1d2 5', MaxRng()) == (9, [('2d3', [3, 3]), ('-1d2', [2])])
+
+
+@pytest.mark.parametrize(
+    ('text', 'sound'),
+    [
+        ('5', '(ｺﾛｺﾛﾘﾝ…)'),
+        ('99d1', '(ｺﾛｺﾛﾘﾝ…)'),
+        ('99d1 1d1', '(ｼﾞｬﾗｼﾞｬﾗｼﾞｬﾗ…)'),
+        ('999d1', '(ｼﾞｬﾗｼﾞｬﾗｼﾞｬﾗ…)'),
+        ('500d1 -500d1', '(ﾄﾞｼｬｰｰｰ…)'),
+    ],
+)
+def test_sound_grows_with_dice(text, sound):
+    assert result_line(text, MaxRng()).startswith(f'{sound} {text}: ')

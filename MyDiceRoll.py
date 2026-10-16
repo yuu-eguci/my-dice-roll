@@ -59,14 +59,25 @@ def roll(text, rng=random):
     return total, rolls
 
 
+def sound(dice_count):
+    """振ったダイスの数に合わせた音。"""
+    if dice_count >= MAX_DICE:
+        return '(ﾄﾞｼｬｰｰｰ…)'
+    if dice_count >= 100:
+        return '(ｼﾞｬﾗｼﾞｬﾗｼﾞｬﾗ…)'
+    return '(ｺﾛｺﾛﾘﾝ…)'
+
+
 def result_line(text, rng=random):
-    """結果表示欄に出す文。ダイスを 2 個以上振ったら 2 行目に出目を出す。
+    """結果表示欄に出す文。2 行目に出目を出す。
 
     読めない入力は ValueError。
     """
     total, rolls = roll(text, rng)
-    line = f'(ｺﾛｺﾛﾘﾝ…) {normalize(text)}: {total}'
-    if sum(len(values) for _, values in rolls) < 2:
+    dice_count = sum(len(values) for _, values in rolls)
+    line = f'{sound(dice_count)} {normalize(text)}: {total}'
+    # ダイスが 1 個だけのときや、合計しか出さない項目ひとつだけのときは、合計と同じなので出さない
+    if dice_count < 2 or (len(rolls) == 1 and dice_count > MAX_SHOWN_DICE):
         return line
     shown = [
         f'{item}: {sum(values)}'
