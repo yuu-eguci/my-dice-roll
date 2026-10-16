@@ -62,12 +62,12 @@ def test_result_area_is_read_only(app):
 
 def test_full_width_input_is_shown_half_width(app):
     enter(app, '２ｄ６')
-    assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d6: 12'
+    assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d6: 12\n(2d6: 6, 6)'
 
 
 def test_enter_shows_total(app):
     enter(app, '2d3 -1d2 5')
-    assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: 9'
+    assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: 9\n(2d3: 3, 3 / -1d2: 2)'
 
 
 def test_error_replaces_old_result(app):
@@ -77,9 +77,9 @@ def test_error_replaces_old_result(app):
 
 
 def test_copy_puts_result_on_clipboard(app):
-    enter(app, '1d6')
+    enter(app, '2d6')
     app.copy_button.invoke()
-    assert app.clipboard_get() == '>> (ｺﾛｺﾛﾘﾝ…) 1d6: 6'
+    assert app.clipboard_get() == '>> (ｺﾛｺﾛﾘﾝ…) 2d6: 12\n(2d6: 6, 6)'
 
 
 @pytest.mark.parametrize('before', [[], ['1d6', 'abc']])

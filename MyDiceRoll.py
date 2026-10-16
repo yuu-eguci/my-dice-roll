@@ -12,6 +12,8 @@ import unicodedata
 
 PLACEHOLDER = '--- 入力欄 ---'
 MAX_DICE = 1000
+# これより多く振ったら、出目ではなく合計を出す
+MAX_SHOWN_DICE = 10
 DICE = re.compile(r'([+-]?)(\d+)d(\d+)', re.ASCII)
 INTEGER = re.compile(r'[+-]?\d+', re.ASCII)
 
@@ -22,11 +24,15 @@ def normalize(text):
 
 
 def roll(text, rng=random):
-    """'2d3 -1d2 5' のような入力のダイスを振って合計を返す。読めない入力は ValueError。"""
+    """'2d3 -1d2 5' のような入力のダイスを振って、合計と [(項目, 出目のリスト), ...] を返す。
+
+    読めない入力は ValueError。
+    """
     items = normalize(text).split()
     if not items:
         raise ValueError('何か書いてね')
     total = 0
+    rolls = []
     for item in items:
         if INTEGER.fullmatch(item):
             total += int(item)
@@ -37,14 +43,28 @@ def roll(text, rng=random):
         sign, count, sides = dice[1], int(dice[2]), int(dice[3])
         if not (1 <= count <= MAX_DICE and sides >= 1):
             raise ValueError(f"'{item}': ダイスは 1〜{MAX_DICE} 個、1 面以上にしてね")
-        result = sum(rng.randint(1, sides) for _ in range(count))
-        total += -result if sign == '-' else result
-    return total
+        values = [rng.randint(1, sides) for _ in range(count)]
+        rolls.append((item, values))
+        total += -sum(values) if sign == '-' else sum(values)
+    return total, rolls
 
 
 def result_line(text, rng=random):
-    """結果表示欄に出す行。読めない入力は ValueError。"""
-    return f'(ｺﾛｺﾛﾘﾝ…) {normalize(text)}: {roll(text, rng)}'
+    """結果表示欄に出す文。ダイスを 2 個以上振ったら 2 行目に出目を出す。
+
+    読めない入力は ValueError。
+    """
+    total, rolls = roll(text, rng)
+    line = f'(ｺﾛｺﾛﾘﾝ…) {normalize(text)}: {total}'
+    if sum(len(values) for _, values in rolls) < 2:
+        return line
+    shown = [
+        f'{item}: {sum(values)}'
+        if len(values) > MAX_SHOWN_DICE
+        else f'{item}: {", ".join(map(str, values))}'
+        for item, values in rolls
+    ]
+    return f'{line}\n({" / ".join(shown)})'
 
 
 class GreenDiceRoll(tk.Frame):
