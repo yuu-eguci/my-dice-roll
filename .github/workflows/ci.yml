@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.14", "3.15"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --frozen
+      - if: matrix.python-version == '3.15'
+        run: uv run ruff check
+      - if: matrix.python-version == '3.15'
+        run: uv run ruff format --check
+      # tkinter のテストには画面が要るので、仮想ディスプレイで動かす
+      - run: xvfb-run -a uv run pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: docker compose build
+      - name: Start the app, stop it, and start it again
+        run: |
+          docker compose up --detach --wait --wait-timeout 60
+          docker compose stop
+          docker compose up --detach --wait --wait-timeout 60
+          docker compose down
+      - run: docker build --target dev --tag my-dice-roll-dev .
+      - run: docker run --rm my-dice-roll-dev

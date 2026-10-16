@@ -1,0 +1,76 @@
+import tkinter as tk
+
+import pytest
+
+from MyDiceRoll import GreenDiceRoll
+from tests.test_roll import MaxRng
+
+
+@pytest.fixture
+def app():
+    root = tk.Tk()
+    app = GreenDiceRoll(root, MaxRng())
+    root.update()
+    yield app
+    if _alive(root):
+        root.destroy()
+
+
+def _alive(root):
+    try:
+        root.winfo_exists()
+    except tk.TclError:
+        return False
+    return True
+
+
+def enter(app, text):
+    app.entry.delete(0, tk.END)
+    app.entry.insert(0, text)
+    app.entry.focus_force()
+    app.update()
+    app.entry.event_generate('<Return>')
+    app.update()
+
+
+def result(app):
+    return app.result_area.get('1.0', 'end-1c')
+
+
+def test_window_keeps_original_look(app):
+    assert app.master.title() == 'Green Dice Roll'
+    assert app.entry.get() == '--- 入力欄 ---'
+    assert result(app) == '--- 結果表示欄 ---'
+
+
+def test_enter_shows_total(app):
+    enter(app, '2d3 -1d2 5')
+    assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: 9'
+
+
+def test_error_replaces_old_result(app):
+    enter(app, '1d6')
+    enter(app, 'abc')
+    assert result(app) == "'abc' は読めないよ"
+
+
+def test_copy_puts_result_on_clipboard(app):
+    enter(app, '1d6')
+    app.copy_button.invoke()
+    assert app.clipboard_get() == '>> (ｺﾛｺﾛﾘﾝ…) 1d6: 6'
+
+
+@pytest.mark.parametrize('before', [[], ['1d6', 'abc']])
+def test_copy_does_nothing_without_result(app, before):
+    for text in before:
+        enter(app, text)
+    app.clipboard_clear()
+    app.clipboard_append('keep')
+    app.copy_button.invoke()
+    assert app.clipboard_get() == 'keep'
+
+
+def test_close_button_destroys_window(app):
+    root = app.master
+    app.close_button.invoke()
+    assert not _alive(root)
