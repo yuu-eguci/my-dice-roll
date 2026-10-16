@@ -6,6 +6,7 @@
 
 import random
 import re
+import sys
 import tkinter as tk
 import unicodedata
 
@@ -39,6 +40,11 @@ def roll(text, rng=random):
         result = sum(rng.randint(1, sides) for _ in range(count))
         total += -result if sign == '-' else result
     return total
+
+
+def result_line(text, rng=random):
+    """結果表示欄に出す行。読めない入力は ValueError。"""
+    return f'(ｺﾛｺﾛﾘﾝ…) {normalize(text)}: {roll(text, rng)}'
 
 
 class GreenDiceRoll(tk.Frame):
@@ -92,9 +98,8 @@ class GreenDiceRoll(tk.Frame):
             self.entry.delete(0, tk.END)
 
     def calculate(self, event=None):
-        text = normalize(self.entry.get())
         try:
-            self.last_result = f'(ｺﾛｺﾛﾘﾝ…) {text}: {roll(text, self.rng)}'
+            self.last_result = result_line(self.entry.get(), self.rng)
             shown = self.last_result
         except ValueError as error:
             self.last_result = ''
@@ -110,11 +115,20 @@ class GreenDiceRoll(tk.Frame):
             self.clipboard_append('>> ' + self.last_result)
 
 
-def main():
+def main(args):
+    """引数があれば画面を出さずに振る。なければ画面を出す。"""
+    if args:
+        try:
+            print(result_line(' '.join(args)))
+        except ValueError as error:
+            print(error, file=sys.stderr)
+            return 1
+        return 0
     root = tk.Tk()
     GreenDiceRoll(root)
     root.mainloop()
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main(sys.argv[1:]))
