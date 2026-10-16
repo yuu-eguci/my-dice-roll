@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from MyDiceRoll import result_line, roll
+from MyDiceRoll import normalize, result_line, roll
 
 
 class MaxRng:
@@ -148,3 +148,21 @@ def test_zorome_only_when_all_dice_of_an_item_match():
 
 def test_count_can_be_omitted():
     assert roll('d6 -d4', MaxRng()) == (2, [('d6', [6]), ('-d4', [4])])
+
+
+@pytest.mark.parametrize(
+    ('text', 'normalized'),
+    [
+        ('2d3 - 1d2 + 5', '2d3 -1d2 +5'),
+        ('-  5', '-5'),
+        ('２ｄ３　ー　１', '2d3 -1'),
+        ('1d6 -', '1d6 -'),
+    ],
+)
+def test_signs_followed_by_spaces_stick_to_the_next_item(text, normalized):
+    assert normalize(text) == normalized
+
+
+def test_lone_trailing_sign_is_unreadable():
+    with pytest.raises(ValueError, match="'-' は読めないよ"):
+        roll('1d6 -')

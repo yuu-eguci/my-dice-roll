@@ -20,13 +20,17 @@ MAX_SHOWN_DICE = 10
 # 大きすぎる数で固まったり Python のエラーが出たりしないように、数は 6 桁まで
 DICE = re.compile(r'([+-]?)(\d{0,6})d(\d{1,6})', re.ASCII)
 INTEGER = re.compile(r'[+-]?\d{1,6}', re.ASCII)
+SIGN_AND_SPACES = re.compile(r'(?<!\S)([+-])\s+(?=\S)')
 # 日本語入力で打ちがちなマイナス (長音記号 ー と U+2212 のマイナス記号)
 MINUS = str.maketrans('\u30fc\u2212', '--')
 
 
 def normalize(text):
     """全角を半角に、大文字を小文字にして、スペースをひとつずつにする。"""
-    return ' '.join(unicodedata.normalize('NFKC', text).translate(MINUS).lower().split())
+    text = unicodedata.normalize('NFKC', text).translate(MINUS).lower()
+    # '2d3 - 1d2' のように記号の後ろにスペースがあったら、次の項目にくっつける
+    text = SIGN_AND_SPACES.sub(r'\1', text)
+    return ' '.join(text.split())
 
 
 def roll(text, rng=random):
