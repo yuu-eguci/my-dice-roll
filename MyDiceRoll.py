@@ -11,6 +11,9 @@ import tkinter as tk
 import unicodedata
 
 PLACEHOLDER = '--- 入力欄 ---'
+COPY = '結果をコピーするヴォタン'
+# コピーしたあと「コピーしたヴォタン!」にしておく時間 (ミリ秒)
+COPIED_MS = 1500
 HOW_TO = (
     "'+'記号は書かず\n'2d3-1d2+5'であれば\n'2d3 -1d2 5'というように書いてね。\n書いたらエンター。\n"
 )
@@ -131,9 +134,7 @@ class GreenDiceRoll(tk.Frame):
         self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
         self.result_area.configure(yscrollcommand=self.scrollbar.set)
 
-        self.copy_button = tk.Button(
-            main_frame, text='結果をコピーするヴォタン', command=self.copy_result, height=2
-        )
+        self.copy_button = tk.Button(main_frame, text=COPY, command=self.copy_result, height=2)
         self.copy_button.pack()
 
         self.close_button = tk.Button(
@@ -163,6 +164,8 @@ class GreenDiceRoll(tk.Frame):
         if self.last_result:
             self.clipboard_clear()
             self.clipboard_append('>> ' + self.last_result)
+            self.copy_button.configure(text='コピーしたヴォタン!')
+            self.after(COPIED_MS, lambda: self.copy_button.configure(text=COPY))
 
 
 def main(args):

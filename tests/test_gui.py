@@ -1,8 +1,10 @@
+import time
 import tkinter as tk
 from pathlib import Path
 
 import pytest
 
+import MyDiceRoll
 from MyDiceRoll import GreenDiceRoll
 from tests.test_roll import MaxRng
 
@@ -119,6 +121,16 @@ def test_copy_puts_result_on_clipboard(app):
     assert app.clipboard_get() == '>> (ｺﾛｺﾛﾘﾝ…) 2d6: 12\n(2d6: 6, 6 ｿﾞﾛ目!)'
 
 
+def test_copy_button_says_copied_for_a_while(app, monkeypatch):
+    monkeypatch.setattr(MyDiceRoll, 'COPIED_MS', 50)
+    enter(app, '1d6')
+    app.copy_button.invoke()
+    assert app.copy_button['text'] == 'コピーしたヴォタン!'
+    time.sleep(0.1)
+    app.update()
+    assert app.copy_button['text'] == '結果をコピーするヴォタン'
+
+
 @pytest.mark.parametrize('before', [[], ['1d6', 'abc']])
 def test_copy_does_nothing_without_result(app, before):
     for text in before:
@@ -127,6 +139,7 @@ def test_copy_does_nothing_without_result(app, before):
     app.clipboard_append('keep')
     app.copy_button.invoke()
     assert app.clipboard_get() == 'keep'
+    assert app.copy_button['text'] == '結果をコピーするヴォタン'
 
 
 def test_close_button_destroys_window(app):
