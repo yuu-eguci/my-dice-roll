@@ -75,6 +75,13 @@ def test_keypad_enter_also_rolls(app):
     assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 1d6: 6'
 
 
+def test_scrollbar_follows_long_result(app):
+    assert app.result_area['yscrollcommand'].endswith('set')
+    enter(app, ' '.join(['1d6'] * 20))
+    lines = app.result_area.count('1.0', 'end', 'update', 'displaylines')
+    assert lines > int(app.result_area['height'])
+
+
 def test_window_fits_docker_screen(app):
     assert app.master.winfo_reqwidth() <= 350
     assert app.master.winfo_reqheight() <= 330

@@ -106,10 +106,16 @@ class GreenDiceRoll(tk.Frame):
 
         tk.Label(main_frame, text='').pack()
 
-        self.result_area = tk.Text(main_frame, bg='#f5deb3', height=3, width=25)
+        result_frame = tk.Frame(main_frame)
+        result_frame.pack()
+        self.result_area = tk.Text(result_frame, bg='#f5deb3', height=3, width=25)
         self.result_area.insert('end', '--- 結果表示欄 ---')
         self.result_area.configure(state='disabled')
-        self.result_area.pack()
+        self.result_area.pack(side=tk.LEFT)
+        # 結果が長くて収まらないときに、続きがあるとわかるように
+        self.scrollbar = tk.Scrollbar(result_frame, command=self.result_area.yview)
+        self.scrollbar.pack(side=tk.LEFT, fill=tk.Y)
+        self.result_area.configure(yscrollcommand=self.scrollbar.set)
 
         self.copy_button = tk.Button(
             main_frame, text='結果をコピーするヴォタン', command=self.copy_result, height=2
