@@ -52,10 +52,44 @@ def test_unreadable_item(token):
         roll(f'1d6 {token}')
 
 
-@pytest.mark.parametrize('token', ['0d6', '1001d6', '1d0', '-1d0'])
+@pytest.mark.parametrize('token', ['0d6', '1d0', '-1d0'])
 def test_out_of_range_dice(token):
-    with pytest.raises(ValueError, match=f"'{token}': ダイスは 1〜1000 個、1 面以上にしてね"):
+    with pytest.raises(ValueError, match=f"'{token}': ダイスは 1 個以上、1 面以上にしてね"):
         roll(token)
+
+
+def test_error_shows_normalized_item():
+    with pytest.raises(ValueError, match="'2d0'"):
+        roll('２ｄ０')
+
+
+@pytest.mark.parametrize('text', ['1001d6', '1000d1 1d1', '500d1 -501d1'])
+def test_more_than_1000_dice_in_total(text):
+    with pytest.raises(ValueError, match='ダイスは全部で 1000 個までにしてね'):
+        roll(text)
+
+
+def test_exactly_1000_dice_in_total():
+    assert roll('500d1 -500d1', MaxRng())[0] == 0
+
+
+@pytest.mark.parametrize(
+    'token',
+    ['1234567', '1d1234567', '1234567d1', '9' * 5000],
+    ids=['7-digits', 'sides', 'count', '5000-digits'],
+)
+def test_numbers_longer_than_6_digits_are_unreadable(token):
+    with pytest.raises(ValueError, match='は読めないよ'):
+        roll(token)
+
+
+def test_6_digit_numbers():
+    assert roll('999999 -1d999999', MaxRng())[0] == 0
+
+
+@pytest.mark.parametrize('minus', ['ー', '−'])
+def test_ime_minus_signs(minus):
+    assert roll(f'5 {minus}1d2 {minus}1', MaxRng())[0] == 2
 
 
 def test_full_width_input():

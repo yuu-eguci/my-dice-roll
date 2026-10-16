@@ -14,13 +14,16 @@ PLACEHOLDER = '--- 入力欄 ---'
 MAX_DICE = 1000
 # これより多く振ったら、出目ではなく合計を出す
 MAX_SHOWN_DICE = 10
-DICE = re.compile(r'([+-]?)(\d+)d(\d+)', re.ASCII)
-INTEGER = re.compile(r'[+-]?\d+', re.ASCII)
+# 大きすぎる数で固まったり Python のエラーが出たりしないように、数は 6 桁まで
+DICE = re.compile(r'([+-]?)(\d{1,6})d(\d{1,6})', re.ASCII)
+INTEGER = re.compile(r'[+-]?\d{1,6}', re.ASCII)
+# 日本語入力で打ちがちなマイナス (長音記号 ー と U+2212 のマイナス記号)
+MINUS = str.maketrans('\u30fc\u2212', '--')
 
 
 def normalize(text):
     """全角を半角に、大文字を小文字にして、スペースをひとつずつにする。"""
-    return ' '.join(unicodedata.normalize('NFKC', text).lower().split())
+    return ' '.join(unicodedata.normalize('NFKC', text).translate(MINUS).lower().split())
 
 
 def roll(text, rng=random):
@@ -32,6 +35,7 @@ def roll(text, rng=random):
     if not items:
         raise ValueError('何か書いてね')
     total = 0
+    dice_count = 0
     rolls = []
     for item in items:
         if INTEGER.fullmatch(item):
@@ -41,8 +45,11 @@ def roll(text, rng=random):
         if not dice:
             raise ValueError(f"'{item}' は読めないよ")
         sign, count, sides = dice[1], int(dice[2]), int(dice[3])
-        if not (1 <= count <= MAX_DICE and sides >= 1):
-            raise ValueError(f"'{item}': ダイスは 1〜{MAX_DICE} 個、1 面以上にしてね")
+        if count < 1 or sides < 1:
+            raise ValueError(f"'{item}': ダイスは 1 個以上、1 面以上にしてね")
+        dice_count += count
+        if dice_count > MAX_DICE:
+            raise ValueError(f'ダイスは全部で {MAX_DICE} 個までにしてね')
         values = [rng.randint(1, sides) for _ in range(count)]
         rolls.append((item, values))
         total += -sum(values) if sign == '-' else sum(values)
@@ -94,6 +101,7 @@ class GreenDiceRoll(tk.Frame):
         self.entry.insert(0, PLACEHOLDER)
         self.entry.pack()
         self.entry.bind('<Return>', self.calculate)
+        self.entry.bind('<KP_Enter>', self.calculate)
         self.entry.bind('<FocusIn>', self.clear_placeholder)
 
         tk.Label(main_frame, text='').pack()

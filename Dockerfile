@@ -24,7 +24,7 @@ FROM base AS dev
 RUN apt-get update \
     && apt-get install -y --no-install-recommends xauth \
     && rm -rf /var/lib/apt/lists/*
-RUN uv sync --frozen
+RUN uv sync --locked
 # マウントしたフォルダのユーザーが違っても動くように、キャッシュは書かない
 ENV RUFF_NO_CACHE=true \
     PYTEST_ADDOPTS="-p no:cacheprovider" \
@@ -36,6 +36,7 @@ CMD ["sh", "-c", "ruff check && ruff format --check && xvfb-run -a pytest"]
 FROM base AS app
 # x11vnc + noVNC: 仮想ディスプレイをブラウザで見る
 # (Debian の novnc パッケージは nodejs ごと入って重いので、noVNC は公式リリースの静的ファイルを使う)
+# noVNC は Dependabot が更新できないので、URL と checksum は手で更新する
 RUN apt-get update \
     && apt-get install -y --no-install-recommends x11vnc websockify \
     && rm -rf /var/lib/apt/lists/*
@@ -44,10 +45,10 @@ ADD --checksum=sha256:b1003a11b6e6e8d8f7f5e5586daae7f8ca651d8aee0aa155ff9ac841c4
 RUN mkdir /opt/novnc \
     && tar xzf /tmp/novnc.tar.gz -C /opt/novnc --strip-components=1 \
     && rm /tmp/novnc.tar.gz
-RUN uv sync --frozen --no-dev
+RUN uv sync --locked --no-dev
 COPY MyDiceRoll.py ./
 COPY docker/start.sh ./docker/start.sh
 USER app
 EXPOSE 6080
-HEALTHCHECK --interval=2s --start-period=20s CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:6080/vnc.html')"
+HEALTHCHECK --interval=30s --start-period=20s --start-interval=1s CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:6080/vnc.html')"
 CMD ["sh", "/app/docker/start.sh"]

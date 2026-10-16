@@ -10,6 +10,6 @@ for _ in $(seq 100); do [ -e /tmp/.X11-unix/X0 ] && break; sleep 0.1; done
 [ -e /tmp/.X11-unix/X0 ] || { echo 'Xvfb が起動しませんでした' >&2; exit 1; }
 export DISPLAY=:0
 x11vnc -display :0 -localhost -rfbport 5900 -forever -shared -nopw -quiet &
-websockify --web /opt/novnc 6080 localhost:5900 >/dev/null 2>&1 &
+websockify --web /opt/novnc 6080 localhost:5900 &
 # 閉じるヴォタンで終了したらコンテナも止まる
 exec python /app/MyDiceRoll.py

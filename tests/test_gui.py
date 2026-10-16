@@ -65,6 +65,21 @@ def test_full_width_input_is_shown_half_width(app):
     assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d6: 12\n(2d6: 6, 6)'
 
 
+def test_keypad_enter_also_rolls(app):
+    app.entry.delete(0, tk.END)
+    app.entry.insert(0, '1d6')
+    app.entry.focus_force()
+    app.update()
+    app.entry.event_generate('<KP_Enter>')
+    app.update()
+    assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 1d6: 6'
+
+
+def test_window_fits_docker_screen(app):
+    assert app.master.winfo_reqwidth() <= 350
+    assert app.master.winfo_reqheight() <= 330
+
+
 def test_enter_shows_total(app):
     enter(app, '2d3 -1d2 5')
     assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: 9\n(2d3: 3, 3 / -1d2: 2)'
