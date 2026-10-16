@@ -79,13 +79,15 @@ def result_line(text, rng=random):
     # ダイスが 1 個だけのときや、合計しか出さない項目ひとつだけのときは、合計と同じなので出さない
     if dice_count < 2 or (len(rolls) == 1 and dice_count > MAX_SHOWN_DICE):
         return line
-    shown = [
-        f'{item}: {sum(values)}'
-        if len(values) > MAX_SHOWN_DICE
-        else f'{item}: {", ".join(map(str, values))}'
-        for item, values in rolls
-    ]
-    return f'{line}\n({" / ".join(shown)})'
+    return f'{line}\n({" / ".join(breakdown(item, values) for item, values in rolls)})'
+
+
+def breakdown(item, values):
+    """'2d6: 3, 3 ｿﾞﾛ目!' のような、ひとつの項目の出目。多すぎるときは合計。"""
+    if len(values) > MAX_SHOWN_DICE:
+        return f'{item}: {sum(values)}'
+    zorome = ' ｿﾞﾛ目!' if len(values) > 1 and len(set(values)) == 1 else ''
+    return f'{item}: {", ".join(map(str, values))}{zorome}'
 
 
 class GreenDiceRoll(tk.Frame):

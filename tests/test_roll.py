@@ -97,12 +97,15 @@ def test_full_width_input():
 
 
 def test_result_line_shows_each_die():
-    assert result_line('2d3 -1d2 5', MaxRng()) == '(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: 9\n(2d3: 3, 3 / -1d2: 2)'
+    assert (
+        result_line('2d3 -1d2 5', MaxRng())
+        == '(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: 9\n(2d3: 3, 3 ｿﾞﾛ目! / -1d2: 2)'
+    )
 
 
 def test_result_line_shows_sum_for_more_than_ten_dice():
     assert result_line('10d2 11d2', MaxRng()) == (
-        '(ｺﾛｺﾛﾘﾝ…) 10d2 11d2: 42\n(10d2: 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 / 11d2: 22)'
+        '(ｺﾛｺﾛﾘﾝ…) 10d2 11d2: 42\n(10d2: 2, 2, 2, 2, 2, 2, 2, 2, 2, 2 ｿﾞﾛ目! / 11d2: 22)'
     )
 
 
@@ -127,3 +130,17 @@ def test_roll_returns_each_die():
 )
 def test_sound_grows_with_dice(text, sound):
     assert result_line(text, MaxRng()).startswith(f'{sound} {text}: ')
+
+
+class SequenceRng:
+    def __init__(self, *values):
+        self.values = iter(values)
+
+    def randint(self, a, b):
+        return next(self.values)
+
+
+def test_zorome_only_when_all_dice_of_an_item_match():
+    assert result_line('2d6 2d6 1d6 1d6', SequenceRng(3, 3, 3, 4, 5, 5)) == (
+        '(ｺﾛｺﾛﾘﾝ…) 2d6 2d6 1d6 1d6: 23\n(2d6: 3, 3 ｿﾞﾛ目! / 2d6: 3, 4 / 1d6: 5 / 1d6: 5)'
+    )
