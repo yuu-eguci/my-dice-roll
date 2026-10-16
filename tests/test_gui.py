@@ -43,6 +43,28 @@ def test_window_keeps_original_look(app):
     assert result(app) == '--- 結果表示欄 ---'
 
 
+def test_clicking_entry_clears_placeholder_only(app):
+    app.entry.focus_force()
+    app.update()
+    assert app.entry.get() == ''
+    enter(app, '1d6')
+    app.copy_button.focus_force()
+    app.entry.focus_force()
+    app.update()
+    assert app.entry.get() == '1d6'
+
+
+def test_result_area_is_read_only(app):
+    enter(app, '1d6')
+    app.result_area.insert('end', 'typed')
+    assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 1d6: 6'
+
+
+def test_full_width_input_is_shown_half_width(app):
+    enter(app, '２ｄ６')
+    assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d6: 12'
+
+
 def test_enter_shows_total(app):
     enter(app, '2d3 -1d2 5')
     assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: 9'

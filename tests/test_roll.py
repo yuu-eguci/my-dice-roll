@@ -56,3 +56,7 @@ def test_unreadable_item(token):
 def test_out_of_range_dice(token):
     with pytest.raises(ValueError, match=f"'{token}': ダイスは 1〜1000 個、1 面以上にしてね"):
         roll(token)
+
+
+def test_full_width_input():
+    assert roll('２Ｄ３　－１ｄ２　５', MaxRng()) == 6 - 2 + 5

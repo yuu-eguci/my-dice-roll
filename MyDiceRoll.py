@@ -7,15 +7,22 @@
 import random
 import re
 import tkinter as tk
+import unicodedata
 
+PLACEHOLDER = '--- 入力欄 ---'
 MAX_DICE = 1000
 DICE = re.compile(r'([+-]?)(\d+)d(\d+)', re.ASCII)
 INTEGER = re.compile(r'[+-]?\d+', re.ASCII)
 
 
+def normalize(text):
+    """全角を半角に、大文字を小文字にして、スペースをひとつずつにする。"""
+    return ' '.join(unicodedata.normalize('NFKC', text).lower().split())
+
+
 def roll(text, rng=random):
     """'2d3 -1d2 5' のような入力のダイスを振って合計を返す。読めない入力は ValueError。"""
-    items = text.lower().split()
+    items = normalize(text).split()
     if not items:
         raise ValueError('何か書いてね')
     total = 0
@@ -58,14 +65,16 @@ class GreenDiceRoll(tk.Frame):
         label.pack()
 
         self.entry = tk.Entry(main_frame, width=30)
-        self.entry.insert(0, '--- 入力欄 ---')
+        self.entry.insert(0, PLACEHOLDER)
         self.entry.pack()
         self.entry.bind('<Return>', self.calculate)
+        self.entry.bind('<FocusIn>', self.clear_placeholder)
 
         tk.Label(main_frame, text='').pack()
 
         self.result_area = tk.Text(main_frame, bg='#f5deb3', height=3, width=25)
         self.result_area.insert('end', '--- 結果表示欄 ---')
+        self.result_area.configure(state='disabled')
         self.result_area.pack()
 
         self.copy_button = tk.Button(
@@ -78,16 +87,22 @@ class GreenDiceRoll(tk.Frame):
         )
         self.close_button.pack()
 
+    def clear_placeholder(self, event=None):
+        if self.entry.get() == PLACEHOLDER:
+            self.entry.delete(0, tk.END)
+
     def calculate(self, event=None):
-        text = ' '.join(self.entry.get().lower().split())
+        text = normalize(self.entry.get())
         try:
             self.last_result = f'(ｺﾛｺﾛﾘﾝ…) {text}: {roll(text, self.rng)}'
             shown = self.last_result
         except ValueError as error:
             self.last_result = ''
             shown = str(error)
+        self.result_area.configure(state='normal')
         self.result_area.delete('1.0', tk.END)
         self.result_area.insert('end', shown)
+        self.result_area.configure(state='disabled')
 
     def copy_result(self):
         if self.last_result:
