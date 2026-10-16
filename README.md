@@ -58,3 +58,10 @@ uv run ruff check && uv run ruff format --check && uv run pytest
 ![1](media/GDR_1.jpg)
 
 ![2](media/GDR_2.jpg)
+
+昔の macOS で動かしていたころの画面。
+
+![3](media/novnc.png)
+
+今の画面。Docker の中で動いていて、ブラウザ (noVNC) で見ている。
+`2d3 -1d2 5` を振ったところ。
