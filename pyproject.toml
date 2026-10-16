@@ -24,8 +24,8 @@ select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "S", "RUF"]
 [tool.ruff.lint.per-file-ignores]
 # 元の名前を残しているファイル名。
 "MyDiceRoll.py" = ["N999"]
-# 全角の入力をわざとテストしている。
-"tests/*" = ["S101", "RUF001"]
+# assert と、自分のスクリプトを動かす subprocess と、わざと全角を書いたテスト。
+"tests/*" = ["S101", "S603", "RUF001"]
 
 [tool.ruff.format]
 quote-style = "single"

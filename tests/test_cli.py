@@ -1,3 +1,8 @@
+import os
+import subprocess
+import sys
+from pathlib import Path
+
 import pytest
 
 import MyDiceRoll
@@ -16,3 +21,17 @@ def test_arguments_print_result_without_window(capsys, monkeypatch):
 def test_unreadable_arguments_print_error(capsys, args, message):
     assert MyDiceRoll.main(args) == 1
     assert capsys.readouterr() == ('', message + '\n')
+
+
+@pytest.mark.parametrize(('args', 'code'), [(['2d3', '-1d2', '5'], 0), (['abc'], 1)])
+def test_running_the_script_with_arguments(args, code):
+    done = subprocess.run(
+        [sys.executable, 'MyDiceRoll.py', *args],
+        cwd=Path(__file__).parent.parent,
+        capture_output=True,
+        encoding='utf-8',
+        env={**os.environ, 'PYTHONUTF8': '1', 'DISPLAY': ''},
+        check=False,
+    )
+    assert done.returncode == code
+    assert done.stdout.startswith('(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: ' if code == 0 else '')

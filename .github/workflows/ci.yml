@@ -45,5 +45,10 @@ jobs:
           docker compose stop
           docker compose up --detach --wait --wait-timeout 60
           docker compose down
+      - name: Check the README commands without a window
+        run: |
+          test "$(docker compose run --rm app id -u)" = 1000
+          docker compose run --rm app python MyDiceRoll.py 2d3 -1d2 5
+          ! docker compose run --rm app python MyDiceRoll.py abc
       - run: docker build --target dev --tag my-dice-roll-dev .
       - run: docker run --rm my-dice-roll-dev

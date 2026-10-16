@@ -1,4 +1,5 @@
 import tkinter as tk
+from pathlib import Path
 
 import pytest
 
@@ -41,6 +42,14 @@ def test_window_keeps_original_look(app):
     assert app.master.title() == 'Green Dice Roll'
     assert app.entry.get() == '--- 入力欄 ---'
     assert result(app) == '--- 結果表示欄 ---'
+    assert app.copy_button['text'] == '結果をコピーするヴォタン'
+    assert app.close_button['text'] == '　　　閉じるヴォタン　　　'
+
+
+def test_window_size_matches_docker_screen(app):
+    assert app.master.geometry().startswith('350x330')
+    start_sh = Path(__file__).parent.parent / 'docker' / 'start.sh'
+    assert '-screen 0 350x330x24' in start_sh.read_text(encoding='utf-8')
 
 
 def test_clicking_entry_clears_placeholder_only(app):
@@ -80,6 +89,7 @@ def test_scrollbar_follows_long_result(app):
     enter(app, ' '.join(['1d6'] * 20))
     lines = app.result_area.count('1.0', 'end', 'update', 'displaylines')
     assert lines > int(app.result_area['height'])
+    assert app.scrollbar.winfo_ismapped()
 
 
 def test_window_fits_docker_screen(app):

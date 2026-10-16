@@ -50,5 +50,9 @@ COPY MyDiceRoll.py ./
 COPY docker/start.sh ./docker/start.sh
 USER app
 EXPOSE 6080
-HEALTHCHECK --interval=30s --start-period=20s --start-interval=1s CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:6080/vnc.html')"
+# noVNC のページと、その先の VNC サーバー (x11vnc) の両方が動いているか
+HEALTHCHECK --interval=30s --start-period=20s --start-interval=1s CMD python -c "\
+import socket, urllib.request; \
+urllib.request.urlopen('http://localhost:6080/vnc.html'); \
+assert socket.create_connection(('localhost', 5900), 2).recv(3) == b'RFB'"
 CMD ["sh", "/app/docker/start.sh"]
