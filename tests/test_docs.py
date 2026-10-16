@@ -28,7 +28,7 @@ def test_readme_examples_can_be_rolled(example):
 
 
 def test_readme_finds_examples():
-    assert EXAMPLES == ['2d3 -1d2 5', '2d3', '-1d2', '5', '-5', '２ｄ６　ー３']
+    assert EXAMPLES == ['2d3 -1d2 5', '2d3', '-1d2', '5', '-5', 'd6', '1d6', '２ｄ６　ー３']
 
 
 def test_example_with_plus_and_no_spaces_is_rejected():

@@ -18,7 +18,7 @@ MAX_DICE = 1000
 # これより多く振ったら、出目ではなく合計を出す
 MAX_SHOWN_DICE = 10
 # 大きすぎる数で固まったり Python のエラーが出たりしないように、数は 6 桁まで
-DICE = re.compile(r'([+-]?)(\d{1,6})d(\d{1,6})', re.ASCII)
+DICE = re.compile(r'([+-]?)(\d{0,6})d(\d{1,6})', re.ASCII)
 INTEGER = re.compile(r'[+-]?\d{1,6}', re.ASCII)
 # 日本語入力で打ちがちなマイナス (長音記号 ー と U+2212 のマイナス記号)
 MINUS = str.maketrans('\u30fc\u2212', '--')
@@ -47,7 +47,7 @@ def roll(text, rng=random):
         dice = DICE.fullmatch(item)
         if not dice:
             raise ValueError(f"'{item}' は読めないよ")
-        sign, count, sides = dice[1], int(dice[2]), int(dice[3])
+        sign, count, sides = dice[1], int(dice[2] or 1), int(dice[3])
         if count < 1 or sides < 1:
             raise ValueError(f"'{item}': ダイスは 1 個以上、1 面以上にしてね")
         dice_count += count
@@ -152,6 +152,8 @@ class GreenDiceRoll(tk.Frame):
         self.result_area.delete('1.0', tk.END)
         self.result_area.insert('end', shown)
         self.result_area.configure(state='disabled')
+        # そのまま打てば書き直せて、エンターだけならもう一回振れるように
+        self.entry.select_range(0, tk.END)
 
     def copy_result(self):
         if self.last_result:

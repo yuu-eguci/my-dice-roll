@@ -102,6 +102,11 @@ def test_enter_shows_total(app):
     assert result(app) == '(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: 9\n(2d3: 3, 3 ｿﾞﾛ目! / -1d2: 2)'
 
 
+def test_input_is_selected_after_rolling(app):
+    enter(app, '1d6')
+    assert app.entry.selection_get() == '1d6'
+
+
 def test_error_replaces_old_result(app):
     enter(app, '1d6')
     enter(app, 'abc')

@@ -46,7 +46,7 @@ def test_empty_input(text):
         roll(text)
 
 
-@pytest.mark.parametrize('token', ['abc', '2d3-1d2', '3d-6', '1d6-', '1d2d3', 'd6', '2d', '2d3+5'])
+@pytest.mark.parametrize('token', ['abc', '2d3-1d2', '3d-6', '1d6-', '1d2d3', 'd', '2d', '2d3+5'])
 def test_unreadable_item(token):
     with pytest.raises(ValueError, match=re.escape(f"'{token}' は読めないよ")):
         roll(f'1d6 {token}')
@@ -144,3 +144,7 @@ def test_zorome_only_when_all_dice_of_an_item_match():
     assert result_line('2d6 2d6 1d6 1d6', SequenceRng(3, 3, 3, 4, 5, 5)) == (
         '(ｺﾛｺﾛﾘﾝ…) 2d6 2d6 1d6 1d6: 23\n(2d6: 3, 3 ｿﾞﾛ目! / 2d6: 3, 4 / 1d6: 5 / 1d6: 5)'
     )
+
+
+def test_count_can_be_omitted():
+    assert roll('d6 -d4', MaxRng()) == (2, [('d6', [6]), ('-d4', [4])])
