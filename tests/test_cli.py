@@ -23,8 +23,14 @@ def test_unreadable_arguments_print_error(capsys, args, message):
     assert capsys.readouterr() == ('', message + '\n')
 
 
-@pytest.mark.parametrize(('args', 'code'), [(['2d3', '-1d2', '5'], 0), (['abc'], 1)])
-def test_running_the_script_with_arguments(args, code):
+@pytest.mark.parametrize(
+    ('args', 'code', 'stdout', 'stderr'),
+    [
+        (['5', '-1'], 0, '(ｺﾛｺﾛﾘﾝ…) 5 -1: 4\n', ''),
+        (['abc'], 1, '', "'abc' は読めないよ\n"),
+    ],
+)
+def test_running_the_script_with_arguments(args, code, stdout, stderr):
     done = subprocess.run(
         [sys.executable, 'MyDiceRoll.py', *args],
         cwd=Path(__file__).parent.parent,
@@ -33,5 +39,4 @@ def test_running_the_script_with_arguments(args, code):
         env={**os.environ, 'PYTHONUTF8': '1', 'DISPLAY': ''},
         check=False,
     )
-    assert done.returncode == code
-    assert done.stdout.startswith('(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: ' if code == 0 else '')
+    assert (done.returncode, done.stdout, done.stderr) == (code, stdout, stderr)

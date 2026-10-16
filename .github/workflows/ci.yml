@@ -48,7 +48,7 @@ jobs:
       - name: Check the README commands without a window
         run: |
           test "$(docker compose run --rm app id -u)" = 1000
-          docker compose run --rm app python MyDiceRoll.py 2d3 -1d2 5
-          ! docker compose run --rm app python MyDiceRoll.py abc
+          docker compose run --rm app python MyDiceRoll.py 2d3 -1d2 5 | grep '^(ｺﾛｺﾛﾘﾝ…) 2d3 -1d2 5: '
+          if docker compose run --rm app python MyDiceRoll.py abc; then exit 1; fi
       - run: docker build --target dev --tag my-dice-roll-dev .
       - run: docker run --rm my-dice-roll-dev

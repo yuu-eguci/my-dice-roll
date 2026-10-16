@@ -3,10 +3,12 @@ from pathlib import Path
 
 import pytest
 
-from MyDiceRoll import HOW_TO, PLACEHOLDER, roll
+from MyDiceRoll import HOW_TO, PLACEHOLDER, result_line, roll
+from tests.test_roll import SequenceRng
 
 README = Path(__file__).parent.parent / 'README.md'
-HOW_TO_SECTION = README.read_text(encoding='utf-8').split('## 書きかた')[1].split('\n## ')[0]
+README_TEXT = README.read_text(encoding='utf-8')
+HOW_TO_SECTION = README_TEXT.split('## 書きかた')[1].split('\n## ')[0]
 # 書いてはいけない例
 NOT_LIKE_THIS = '2d3-1d2+5'
 # `...` のうち、数字を含んでいてダイスの入力に見えるもの
@@ -48,3 +50,13 @@ def test_readme_finds_examples():
 def test_example_with_plus_and_no_spaces_is_rejected():
     with pytest.raises(ValueError, match='は読めないよ'):
         roll(NOT_LIKE_THIS)
+
+
+def test_readme_sample_output_is_what_the_script_prints():
+    command, *output = re.search(r'```bash\n(docker compose run .*?)```', README_TEXT, re.S)[
+        1
+    ].splitlines()
+    assert command.endswith('python MyDiceRoll.py 2d3 -1d2 5')
+    assert output == [
+        '# ' + line for line in result_line('2d3 -1d2 5', SequenceRng(1, 3, 2)).splitlines()
+    ]
