@@ -125,6 +125,7 @@ class GreenDiceRoll(tk.Frame):
         self.entry.bind('<FocusIn>', self.clear_placeholder)
         self.entry.bind('<Up>', lambda event: self.recall(-1))
         self.entry.bind('<Down>', lambda event: self.recall(1))
+        self.entry.bind('<Escape>', self.clear_input)
 
         tk.Label(main_frame, text='').pack()
 
@@ -168,6 +169,10 @@ class GreenDiceRoll(tk.Frame):
         self.result_area.configure(state='disabled')
         # そのまま打てば書き直せて、エンターだけならもう一回振れるように
         self.entry.select_range(0, tk.END)
+
+    def clear_input(self, event=None):
+        self.entry.delete(0, tk.END)
+        self.history_index = len(self.history)
 
     def recall(self, step):
         index = self.history_index + step

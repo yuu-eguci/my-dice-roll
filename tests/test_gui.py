@@ -124,6 +124,11 @@ def test_up_and_down_recall_rolled_inputs(app):
     assert [press(app, 'Down') for _ in range(2)] == ['2d6', '']
 
 
+def test_escape_clears_input(app):
+    enter(app, '1d6')
+    assert [press(app, key) for key in ['Escape', 'Up', 'Escape', 'Up']] == ['', '1d6', '', '1d6']
+
+
 def test_down_without_history_keeps_input(app):
     app.entry.delete(0, tk.END)
     app.entry.insert(0, '3d6')
