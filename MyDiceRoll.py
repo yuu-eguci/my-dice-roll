@@ -105,6 +105,10 @@ class GreenDiceRoll(tk.Frame):
         # 振れた入力と、↑ / ↓ でいまどこを見ているか
         self.history = []
         self.history_index = 0
+        # ↑ で履歴を見る前に書きかけていた入力
+        self.draft = ''
+        # 「コピーしたヴォタン!」を元に戻す予定 (after の ID)
+        self.copied_after = None
         self.master.geometry('350x330')
         self.master.title('Green Dice Roll')
         self.pack()
@@ -153,6 +157,7 @@ class GreenDiceRoll(tk.Frame):
             self.entry.delete(0, tk.END)
 
     def calculate(self, event=None):
+        self.reset_copy_button()
         text = self.entry.get()
         try:
             self.last_result = result_line(text, self.rng)
@@ -178,16 +183,25 @@ class GreenDiceRoll(tk.Frame):
         index = self.history_index + step
         if not 0 <= index <= len(self.history):
             return
+        if self.history_index == len(self.history):
+            self.draft = self.entry.get()
         self.history_index = index
         self.entry.delete(0, tk.END)
-        self.entry.insert(0, [*self.history, ''][index])
+        self.entry.insert(0, [*self.history, self.draft][index])
 
     def copy_result(self):
         if self.last_result:
             self.clipboard_clear()
             self.clipboard_append('>> ' + self.last_result)
+            self.reset_copy_button()
             self.copy_button.configure(text='コピーしたヴォタン!')
-            self.after(COPIED_MS, lambda: self.copy_button.configure(text=COPY))
+            self.copied_after = self.after(COPIED_MS, self.reset_copy_button)
+
+    def reset_copy_button(self):
+        if self.copied_after:
+            self.after_cancel(self.copied_after)
+            self.copied_after = None
+        self.copy_button.configure(text=COPY)
 
 
 def main(args):
@@ -196,7 +210,7 @@ def main(args):
         try:
             rng = random
             if args[0] == '--seed':
-                if not args[1:2] or not args[1].isdecimal():
+                if not args[1:2] or not INTEGER.fullmatch(args[1]):
                     raise ValueError('--seed のあとには数を書いてね')
                 # ダイスなので暗号用の乱数でなくていい (同じ結果を出したいので、むしろ普通の乱数)
                 rng, args = random.Random(int(args[1])), args[2:]  # noqa: S311

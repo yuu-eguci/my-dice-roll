@@ -51,7 +51,11 @@ def test_same_seed_prints_same_result(capsys):
     assert outputs[0].startswith('(ｺﾛｺﾛﾘﾝ…) 10d100: ')
 
 
-@pytest.mark.parametrize('args', [['--seed', 'x', '1d6'], ['--seed']])
+@pytest.mark.parametrize(
+    'args',
+    [['--seed', 'x', '1d6'], ['--seed'], ['--seed', '1' * 5000, '1d6']],
+    ids=['x', 'none', 'huge'],
+)
 def test_seed_needs_a_number(capsys, args):
     assert MyDiceRoll.main(args) == 1
     assert capsys.readouterr() == ('', '--seed のあとには数を書いてね\n')

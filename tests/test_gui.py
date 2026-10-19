@@ -91,7 +91,13 @@ def test_scrollbar_follows_long_result(app):
     enter(app, ' '.join(['1d6'] * 20))
     lines = app.result_area.count('1.0', 'end', 'update', 'displaylines')
     assert lines > int(app.result_area['height'])
-    assert app.scrollbar.winfo_ismapped()
+    # スクロールバーは少し遅れて動くので、待ってから見る
+    for _ in range(50):
+        app.update()
+        if app.scrollbar.get()[1] < 1.0:
+            break
+        time.sleep(0.02)
+    assert app.scrollbar.get()[1] < 1.0
 
 
 def test_window_fits_docker_screen(app):
@@ -120,6 +126,7 @@ def press(app, key):
 def test_up_and_down_recall_rolled_inputs(app):
     for text in ['1d6', 'abc', '2d6', '2d6']:
         enter(app, text)
+    app.entry.delete(0, tk.END)
     assert [press(app, 'Up') for _ in range(3)] == ['2d6', '1d6', '1d6']
     assert [press(app, 'Down') for _ in range(2)] == ['2d6', '']
 
@@ -127,6 +134,13 @@ def test_up_and_down_recall_rolled_inputs(app):
 def test_escape_clears_input(app):
     enter(app, '1d6')
     assert [press(app, key) for key in ['Escape', 'Up', 'Escape', 'Up']] == ['', '1d6', '', '1d6']
+
+
+def test_down_returns_to_half_typed_input(app):
+    enter(app, '1d6')
+    app.entry.delete(0, tk.END)
+    app.entry.insert(0, '3d6')
+    assert [press(app, 'Up'), press(app, 'Down')] == ['1d6', '3d6']
 
 
 def test_down_without_history_keeps_input(app):
@@ -145,6 +159,25 @@ def test_copy_puts_result_on_clipboard(app):
     enter(app, '2d6')
     app.copy_button.invoke()
     assert app.clipboard_get() == '>> (ｺﾛｺﾛﾘﾝ…) 2d6: 12\n(2d6: 6, 6 ｿﾞﾛ目!)'
+
+
+def test_copying_again_keeps_copied_for_full_time(app, monkeypatch):
+    monkeypatch.setattr(MyDiceRoll, 'COPIED_MS', 200)
+    enter(app, '1d6')
+    app.copy_button.invoke()
+    time.sleep(0.12)
+    app.copy_button.invoke()
+    time.sleep(0.12)
+    app.update()
+    assert app.copy_button['text'] == 'コピーしたヴォタン!'
+
+
+def test_new_roll_resets_copied(app, monkeypatch):
+    monkeypatch.setattr(MyDiceRoll, 'COPIED_MS', 10000)
+    enter(app, '1d6')
+    app.copy_button.invoke()
+    enter(app, '2d6')
+    assert app.copy_button['text'] == '結果をコピーするヴォタン'
 
 
 def test_copy_button_says_copied_for_a_while(app, monkeypatch):
